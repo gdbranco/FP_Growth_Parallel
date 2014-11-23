@@ -25,10 +25,12 @@ struct transaction_t
         return os;
     }
 };
-typedef std::vector<transaction_t<int> > table_transaction_t;
 
 template<typename T>
-std::map<T, int> find_frequency(table_transaction_t mem) {
+using table_transaction_t = std::vector<transaction_t<T> >;
+
+template<typename T>
+std::map<T, int> find_frequency(table_transaction_t<T> mem) {
 	std::map<T,int> freqs;
 	
 	for(int i = 0; i < mem.size(); i++) 

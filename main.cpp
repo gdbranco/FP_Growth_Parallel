@@ -12,15 +12,15 @@
 using namespace std;
 
 
-table_transaction_t toMem(string filename);
+table_transaction_t<int> toMem(string filename);
 
 template<typename T>
-Tree_Node<int>* ordered_to_tree(table_transaction_t ordered);
+Tree_Node<T>* ordered_to_tree(table_transaction_t<T> ordered);
 
 
 int main()
 {
-	table_transaction_t teste = toMem("items.db");
+	table_transaction_t<int> teste = toMem("items.db");
 	map<int, int> freqs =  find_frequency<int>(teste);
 
 	freq_order_class<int> freq_obj(freqs);
@@ -37,18 +37,20 @@ int main()
 		 //cout << transa->first << ": " << transa->second << "\n";
 	 //}
 	 //cout << "\n";
+	 //
+	cout << endl << "----" << endl;
 
-	//for(unsigned int i=0;i<teste.size();i++)
-	//{
-		//cout << teste[i] << endl;
-	//}
+	for(unsigned int i=0;i<teste.size();i++)
+	{
+		cout << teste[i] << endl;
+	}
 	
 	return 0;
 }
 
-table_transaction_t toMem(string filename)
+table_transaction_t<int> toMem(string filename)
 {
-	table_transaction_t memoria;
+	table_transaction_t<int> memoria;
 	vector<int> lista;
 	int TID = 0;
 	fstream sc;
@@ -78,10 +80,10 @@ table_transaction_t toMem(string filename)
 
 
 template<typename T>
-Tree_Node<int>* ordered_to_tree(table_transaction_t ordered) {
+Tree_Node<T>* ordered_to_tree(table_transaction_t<T> ordered) {
 
-	Tree_Node<int> *root, *cur, *aux;
-	root  = new Tree_Node<int>(-1);
+	Tree_Node<T> *root, *cur, *aux;
+	root  = new Tree_Node<T>(-1);
 	for(auto tr = ordered.begin(); tr != ordered.end(); tr++) {
 		cur = root;
 		for(auto it = tr->items.begin(); it != tr->items.end(); it++) {
@@ -91,7 +93,7 @@ Tree_Node<int>* ordered_to_tree(table_transaction_t ordered) {
 				cur = aux;
 			} else {
 				cout << "/" << *it << endl;
-				aux = new Tree_Node<int>((*it));
+				aux = new Tree_Node<T>((*it));
 				cur->children.push_back( aux );
 				cur = aux;
 			}
