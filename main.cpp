@@ -14,10 +14,6 @@ using namespace std;
 
 table_transaction_t<int> toMem(string filename);
 
-template<typename T>
-Tree_Node<T>* ordered_to_tree(table_transaction_t<T> ordered);
-
-
 int main()
 {
 	table_transaction_t<int> teste = toMem("items.db");
@@ -29,7 +25,7 @@ int main()
 		sort(tr->items.begin(), tr->items.end(), freq_obj);
 	}
 
-	Tree_Node<int> *root = ordered_to_tree<int>(teste);
+	Tree_Node<int> *root = Tree_Node<int>::build_fptree(teste);
 
 
 
@@ -79,28 +75,3 @@ table_transaction_t<int> toMem(string filename)
 }
 
 
-template<typename T>
-Tree_Node<T>* ordered_to_tree(table_transaction_t<T> ordered) {
-
-	Tree_Node<T> *root, *cur, *aux;
-	root  = new Tree_Node<T>(-1);
-	for(auto tr = ordered.begin(); tr != ordered.end(); tr++) {
-		cur = root;
-		for(auto it = tr->items.begin(); it != tr->items.end(); it++) {
-			aux = cur->find_first_child(*it);
-			if (aux != NULL) {
-				cout << "." << *it << endl;
-				cur = aux;
-			} else {
-				cout << "/" << *it << endl;
-				aux = new Tree_Node<T>((*it));
-				cur->children.push_back( aux );
-				cur = aux;
-			}
-		}
-		cout << endl;
-	}
-
-	return root;
-
-}
