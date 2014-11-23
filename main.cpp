@@ -6,66 +6,17 @@
 #include <map>
 #include <algorithm>
 #include <cstdlib>
-#include "tree.hh"
+#include "tree.hpp"
+#include "transaction.hpp"
 
 using namespace std;
-template<typename T>
-class Tree_Node
-{
-public:
-	T data;
-	vector< Tree_Node<T>* > children;
-	Tree_Node(){}
-	Tree_Node(T _data):
-		data(_data){}
-	Tree_Node<T>* find_first_child(T data)
-	{
-		for(auto iter = children.rbegin(); iter != children.rend(); iter++) {
-			if((*iter)->data == data) {
-				return *iter;
-			}
-		}
-		return NULL;
-	}
-private:
-};
-template<typename T>
-struct transaction_t
-{
-	int TID;
-	vector<T> items;
-	transaction_t(int _TID, vector<T> _items):
-					TID(_TID),items(_items){}
-	friend ostream& operator<<(ostream& os,const transaction_t& it)
-    {
-        os << it.TID << ' ';
-        for(unsigned int i=0; i<it.items.size(); i++)
-        {
-            os << it.items[i];
-            if(i!=it.items.size()-1)
-            {
-                os << "->";
-            }
-        }
-        return os;
-    }
-};
-typedef vector<transaction_t<int> > table_transaction_t;
+
 
 table_transaction_t toMem(string filename);
 
-template<typename T>
-tree<transaction_t<T>> ordered_to_tree(table_transaction_t ordered);
+//template<typename T>
+//tree<transaction_t<T>> ordered_to_tree(table_transaction_t ordered);
 
-template<typename T>
-map<T, int> find_frequency(table_transaction_t mem);
-
-template<typename T>
-struct freq_order_class {
-	map<T, int> reference_table;
-	bool operator() (T i,T j) { return (reference_table[i] > reference_table[j]);}
-	freq_order_class(map<T, int> _freq_table) : reference_table(_freq_table) {}
-};
 
 int main()
 {
@@ -99,6 +50,7 @@ int main()
 	}
 	return 0;
 }
+
 table_transaction_t toMem(string filename)
 {
 	table_transaction_t memoria;
@@ -129,27 +81,6 @@ table_transaction_t toMem(string filename)
 	return memoria;
 }
 
-template<typename T>
-map<T, int> find_frequency(table_transaction_t mem) {
-	map<T,int> freqs;
-	
-	for(int i = 0; i < mem.size(); i++) 
-	{
-		for(int j = 0; j < mem[i].items.size(); j++) 
-		{
-			if(freqs.find(mem[i].items[j]) != freqs.end()) 
-			{
-				freqs[mem[i].items[j]]++;
-			} 
-			else 
-			{
-				freqs[mem[i].items[j]] = 1;
-			}
-		}
-	}
-	
-	return freqs;
-}
 
 // template<typename T>
 // tree<transaction_t<T>> ordered_to_tree(table_transaction_t ordered) {
