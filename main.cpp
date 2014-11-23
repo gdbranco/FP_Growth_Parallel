@@ -14,8 +14,8 @@ using namespace std;
 
 table_transaction_t toMem(string filename);
 
-//template<typename T>
-//tree<transaction_t<T>> ordered_to_tree(table_transaction_t ordered);
+template<typename T>
+Tree_Node<int>* ordered_to_tree(table_transaction_t ordered);
 
 
 int main()
@@ -23,31 +23,26 @@ int main()
 	table_transaction_t teste = toMem("items.db");
 	map<int, int> freqs =  find_frequency<int>(teste);
 
-	
-	// for(auto transa = freqs.begin(); transa != freqs.end(); transa++) {
-		// cout << transa->first << ": " << transa->second << "\n";
-	// }
-	// cout << "\n";
-	// freq_order_class<int> freq_obj(freqs);
-	
-	// for(auto tr = teste.begin(); tr != teste.end(); tr++) {
-		// sort(tr->items.begin(), tr->items.end(), freq_obj);
-	// }
-	
-	// for(unsigned int i=0;i<teste.size();i++)
-	// {
-		// cout << teste[i] << endl;
-	// }
-	Tree_Node<int>* root;
-	root  = new Tree_Node<int>(-1);
-	root->children.push_back(new Tree_Node<int>(2));
-	cout << root->data << endl;
-	cout << root->children[0]->data << endl;
-	Tree_Node<int>* acha = root->find_first_child(2);
-	if(acha!=NULL)
-	{
-		cout << acha->data;
+	freq_order_class<int> freq_obj(freqs);
+
+	for(auto tr = teste.begin(); tr != teste.end(); tr++) {
+		sort(tr->items.begin(), tr->items.end(), freq_obj);
 	}
+
+	Tree_Node<int> *root = ordered_to_tree<int>(teste);
+
+
+
+	 //for(auto transa = freqs.begin(); transa != freqs.end(); transa++) {
+		 //cout << transa->first << ": " << transa->second << "\n";
+	 //}
+	 //cout << "\n";
+
+	//for(unsigned int i=0;i<teste.size();i++)
+	//{
+		//cout << teste[i] << endl;
+	//}
+	
 	return 0;
 }
 
@@ -82,15 +77,28 @@ table_transaction_t toMem(string filename)
 }
 
 
-// template<typename T>
-// tree<transaction_t<T>> ordered_to_tree(table_transaction_t ordered) {
-	// tree<int> fptree;
-	
-	// tree<int>::iterator root = fptree.insert(-1);
-	
-	
-	// for(auto tr = ordered.begin(); tr != ordered.end(); tr++) {
-		
-	// }
+template<typename T>
+Tree_Node<int>* ordered_to_tree(table_transaction_t ordered) {
 
-// }
+	Tree_Node<int> *root, *cur, *aux;
+	root  = new Tree_Node<int>(-1);
+	for(auto tr = ordered.begin(); tr != ordered.end(); tr++) {
+		cur = root;
+		for(auto it = tr->items.begin(); it != tr->items.end(); it++) {
+			aux = cur->find_first_child(*it);
+			if (aux != NULL) {
+				cout << "." << *it << endl;
+				cur = aux;
+			} else {
+				cout << "/" << *it << endl;
+				aux = new Tree_Node<int>((*it));
+				cur->children.push_back( aux );
+				cur = aux;
+			}
+		}
+		cout << endl;
+	}
+
+	return root;
+
+}
