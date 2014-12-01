@@ -42,14 +42,16 @@ void* thread_build_and_merge(void* args) {
 	 int pair_id = my_id + offset;
 	 void* status;
 
-	 if(my_id % (2*offset) == 0) {
-		 while(pair_id < THREAD_COUNT) {
+	 while(pair_id < THREAD_COUNT) {
+		 if(my_id % (2*offset) == 0) {
 			 pthread_join(threads[pair_id - 1], &status);
 			 merge_tree(sub_trees[pair_id], m_root);
 			
-			 offset <<= 1;
-			 pair_id = my_id + offset;
+		 } else {
+		 	break;
 		 }
+		 offset <<= 1;
+		 pair_id = my_id + offset;
 	 }
 
 	 sub_trees[my_id] = m_root;

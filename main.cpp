@@ -65,16 +65,16 @@ int main(int argc, char** argv)
 	}
 
 	auto t3 = std::chrono::high_resolution_clock::now();
-	cout << "Construindo FPtree[";
+	cout << "Construindo FPtree [";
 	auto sub_trees = build_tree_parallel<int, table_transaction_t<int>::iterator>(tr_table, freqs, supp );
 	auto t4 = std::chrono::high_resolution_clock::now();
-	cout << chrono::duration_cast<chrono::microseconds>(t4 - t3).count() << "]" << endl;
+	cout << chrono::duration_cast<chrono::milliseconds>(t4 - t3).count() << " ms]" << endl;
 
 	auto t1 = std::chrono::high_resolution_clock::now();
-	cout << "Iniciando FPGrowth[" ;
+	cout << "Iniciando FPGrowth [" ;
 	auto all_extracts = parallel_loop_fp<int>(supp,sub_trees[0], elements);
 	auto t2 = std::chrono::high_resolution_clock::now();
-	cout << chrono::duration_cast<chrono::microseconds>(t2 - t1).count() << "]" << endl;
+	cout << chrono::duration_cast<chrono::milliseconds>(t2 - t1).count() << " ms]" << endl;
 
 	fstream file;
 	file.open("output.txt", std::fstream::trunc | std::fstream::out);
