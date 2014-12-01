@@ -20,12 +20,12 @@ table_transaction_t<int> toMem(string filename);
 int main()
 {
 	//int supp=2;
-	int supp=50;
+	int supp=3;
 	cout << "Iniciando programa" << endl;
 	cout << "Passando para a memória" << endl;
 
 	//table_transaction_t<int> tr_table = toMem("T40I10D100K.db");
-	table_transaction_t<int> tr_table = toMem("items3.db");
+	table_transaction_t<int> tr_table = toMem("items.db");
 	header_table<int> *table;
 
 	cout << "Achando frequencias" << endl;
@@ -48,7 +48,9 @@ int main()
 
 	cout << "Construindo FPTree" << endl;
 	Tree_Node<int> *root = Tree_Node<int>::build_fptree(tr_table, table, freqs, freq_obj, supp);
-	//print_tree(root);
+	print_tree(root);
+
+	cout << "~~~~";
 
 	table->clear();
 	delete table;

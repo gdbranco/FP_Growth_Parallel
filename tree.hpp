@@ -175,12 +175,10 @@ void loop_fp(int supp,Tree_Node<T> *root, std::vector<T> sorted) {
 
 	T cur_element;
 
-//#pragma omp parallel for
 	for(auto it = sorted.rbegin(); it != sorted.rend(); it++) {
 		extract_list = new list<list<int>* >();
 		my_list = NULL;
 		cur_element = *it;
-		cout << "Utilizando : " << cur_element << endl;
 		build_full(cur_element, supp, root, sorted.rbegin(), sorted.rend(), extract_list, my_list);
 		print_frequent_list(extract_list);
 		cout << endl;

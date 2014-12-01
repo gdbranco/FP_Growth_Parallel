@@ -2,6 +2,7 @@
 #define TREE_H
 
 #include <iostream>
+#include <fstream>
 #include <list>
 #include <iterator>
 #include <memory>
@@ -14,7 +15,7 @@ class Tree_Node;
 template<typename T>
 using header_table = std::list< Tree_Node<T>* >;
 
-#define THREAD_COUNT 4
+extern int THREAD_COUNT;
 
 template<typename T>
 class Tree_Node
@@ -102,42 +103,6 @@ using freq_set = std::list<T>;
 template<typename T>
 using freq_set_ptr = std::shared_ptr< std::list<T> >;
 
-template<typename T>
-struct thread_loop_args {
-	int supp;
-	Tree_Node<T> *root;
-	int m_vec_begin;
-	int m_vec_len;
-	std::vector<T> sorted;
-	list< list<freq_set_ptr<T> >* >* local_extract_list;
-	~thread_loop_args();
-
-	thread_loop_args();
-	thread_loop_args(int _supp, Tree_Node<T>* _root, int _beg, int _vec_len, std::vector<T> _sorted) :
-		supp(_supp), root(_root), m_vec_begin(_beg), m_vec_len(_vec_len), sorted(_sorted) {}
-};
-
-template<typename T>
-thread_loop_args<T>::~thread_loop_args() {
-	auto lista_freq_el_it = local_extract_list->begin();
-	while(lista_freq_el_it != local_extract_list->end()) {
-		auto freq_st = (*lista_freq_el_it)->begin();
-		while(freq_st != (*lista_freq_el_it)->end()) {
-			auto el = (*freq_st)->begin();
-			while(el != (*freq_st)->end()) {
-				el = (*freq_st)->erase(el);
-			}
-			freq_st = (*lista_freq_el_it)->erase(freq_st);
-		}
-		delete *lista_freq_el_it;
-		lista_freq_el_it = local_extract_list->erase(lista_freq_el_it);
-	}
-	
-	delete local_extract_list;
-}
-
-template<typename T>
-void* thread_loop_fp(void* args);
 
 template<typename T>
 Tree_Node<T>* clone_tree(Tree_Node<T> *fptree, header_table<T>* header);
@@ -196,29 +161,36 @@ void merge_tree(Tree_Node<T>* src, Tree_Node<T>* dest) {
 			if ((*src_kid)->data == (*dest_kid)->data) {
 				(*dest_kid)->increment((*src_kid)->count);
 				merge_tree(*src_kid, *dest_kid);
+				auto aux =  *src_kid;
+				src_kid = src->get_children()->erase(src_kid);
+				src_kid--;
+				delete aux;
 				found = true;
 				break;
 			}
 		}
 
 		if (!found) {
-			cout << (*src_kid)->data << endl;
 			dest->add_child(*src_kid);
+			src_kid = src->get_children()->erase(src_kid);
+			src_kid--;
 		}
 	}
 }
 
+
 template<typename T>
-void print_frequent_list(const list< freq_set_ptr<T> >* extract_list)
+void print_frequent_list(fstream& file, const list< freq_set_ptr<T> >* extract_list)
 {
+	
 	for(auto ele = extract_list->rbegin(); ele != extract_list->rend(); ele++) {
-		cout << "{";
+		file << "{";
 		for(auto it = (*ele)->rbegin(); it != (*ele)->rend(); it++) {
-			cout << *it;
+			file << *it;
 			if(*it != (*ele)->front()) 
-			 cout << ",";
+			 file << ",";
 		}
-		cout << "}";
+		file << "}";
 	}
 }
 
@@ -240,7 +212,6 @@ void loop_fp(int supp,Tree_Node<T> *root, const std::vector<T> &sorted) {
 		extract_list->clear();
 		delete extract_list;
 	}
-	cout << endl;
 
 }
 
@@ -249,7 +220,6 @@ template<typename T, typename Iterator>
 void build_full(T element, int supp, Tree_Node<T>* root, Iterator sort_beg, Iterator sort_end, std::list<freq_set_ptr<T> >* freq_list, freq_set_ptr<T> caller_list) {
 	Tree_Node<T> *nroot;
 
-	
 
 	nroot = build_conditional(element, supp, root);
 
