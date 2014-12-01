@@ -4,10 +4,11 @@
 #include <fstream>
 #include <algorithm>
 #include <vector>
+#include <iterator>
 #include <list>
 #include <map>
 #include <cstdlib>
-#include "tree.hpp"
+#include "fp_tree.hpp"
 #include "transaction.hpp"
 
 using namespace std;
@@ -19,13 +20,13 @@ table_transaction_t<int> toMem(string filename);
 
 int main()
 {
-	//int supp=2;
-	int supp=500;
+	int supp=2;
+	//int supp=500;
 	cout << "Iniciando programa" << endl;
 	cout << "Passando para a memória" << endl;
 
-	table_transaction_t<int> tr_table = toMem("T40I10D100K.db");
-	//table_transaction_t<int> tr_table = toMem("items3.db");
+	//table_transaction_t<int> tr_table = toMem("T40I10D100K.db");
+	table_transaction_t<int> tr_table = toMem("items3.db");
 	header_table<int> *table;
 
 	cout << "Achando frequencias" << endl;
@@ -46,9 +47,22 @@ int main()
 
 	table = new header_table<int>();
 
+	int size = ceil(  (  (double) tr_table.size()  ) / 2 );
+
 	cout << "Construindo FPTree" << endl;
-	Tree_Node<int> *root = Tree_Node<int>::build_fptree(tr_table, table, freqs, freq_obj, supp);
-	//print_tree(root);
+	auto tr_begin = tr_table.begin();
+	auto tr_split = tr_begin;
+
+	std::advance(tr_split, size);
+
+
+	Tree_Node<int> *root = build_fptree<int, table_transaction_t<int>::iterator>(tr_begin, tr_split, freqs, freq_obj, supp);
+	Tree_Node<int> *root2 = build_fptree<int, table_transaction_t<int>::iterator>(tr_split, tr_table.end(), freqs, freq_obj, supp);
+
+	print_tree(root);
+	cout << endl << "----";
+	merge_tree(root2, root);
+	print_tree(root);
 
 	for(auto it : *table) {
 		delete it;
