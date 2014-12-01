@@ -81,10 +81,13 @@ Tree_Node<T>** build_tree_parallel(table_transaction_t<T> tr_table, map<T, int> 
 
 	int th_id = 0;
 
+	int acc = 0;
+
 	auto tr_split1 = tr_table.begin();
 	auto tr_split2 = tr_split1;
 
 	std::advance(tr_split2, size);
+	acc += size;
 
 	for (int i = 0; i < THREAD_COUNT - 1; i++) {
 		th_id++;
@@ -92,7 +95,12 @@ Tree_Node<T>** build_tree_parallel(table_transaction_t<T> tr_table, map<T, int> 
 		pthread_create(&threads[i], NULL, thread_build_and_merge<T, Iterator>, (void *) th_args[th_id]);
 		std::advance(tr_split1, size);
 		std::advance(tr_split2, size);
+		acc += size;
+		if(acc > tr_table.size()) {
+			tr_split2 = tr_table.end();
+		}
 	}
+
 
 	th_args[0] = new thread_b_and_m_args<T, Iterator >(tr_split1, tr_table.end(), freqs, freq_obj, supp, 0, sub_trees, threads);
 	thread_build_and_merge<T, Iterator >( (void*) th_args[0]  );
