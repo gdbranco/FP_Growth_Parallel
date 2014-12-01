@@ -2,9 +2,10 @@
 #include <string>
 #include <cstring>
 #include <fstream>
-#include <vector>
-#include <map>
 #include <algorithm>
+#include <vector>
+#include <list>
+#include <map>
 #include <cstdlib>
 #include "tree.hpp"
 #include "transaction.hpp"
@@ -18,75 +19,60 @@ table_transaction_t<int> toMem(string filename);
 
 int main()
 {
-	table_transaction_t<int> teste = toMem("items3.db");
+	//int supp=2;
+	int supp=50;
+	cout << "Iniciando programa" << endl;
+	cout << "Passando para a memória" << endl;
+
+	//table_transaction_t<int> tr_table = toMem("T40I10D100K.db");
+	table_transaction_t<int> tr_table = toMem("items3.db");
 	header_table<int> *table;
-	map<int, int> freqs =  find_frequency<int>(teste);
+
+	cout << "Achando frequencias" << endl;
+	map<int, int> freqs =  find_frequency<int>(tr_table);
 	std::vector<int> elements;
 
 	freq_order_class<int> freq_obj(freqs);
 
-	for(auto tr = teste.begin(); tr != teste.end(); tr++) {
-		sort(tr->items.begin(), tr->items.end(), freq_obj);
+	for(auto& pair : freqs)
+	{
+		elements.push_back(pair.first);
 	}
 
-	for(auto pair = freqs.begin(); pair != freqs.end(); pair++) {
-		elements.push_back(pair->first);
-	}
+	cout << "Quantidade de elementos:" << elements.size() << endl;
 
-	sort(elements.begin(), elements.end(), freq_obj);
+	sort(elements.begin(),elements.end(),freq_obj);
+	//elements.sort(freq_obj);
 
 	table = new header_table<int>();
-	Tree_Node<int> *root = Tree_Node<int>::build_fptree(teste, table);
-	print_tree(root);
 
-	cout << endl << "----" << endl;
+	cout << "Construindo FPTree" << endl;
+	Tree_Node<int> *root = Tree_Node<int>::build_fptree(tr_table, table, freqs, freq_obj, supp);
+	//print_tree(root);
 
-	Tree_Node<int>* nroot =	clone_tree<int>(root, table);
+	table->clear();
+	delete table;
+	cout << endl << "----";
 
-	//nroot = build_conditional(9, 2, nroot);
-	
-	list< list<int>* >* extract_list = new list<list<int>* >();
-	list<int>* loko = NULL;
+	cout << "Iniciando FPGrowth" << endl;
+	loop_fp<int>(supp,root, elements);
 
-	build_full(5, 2, nroot, elements.rbegin(), elements.rend(), extract_list, loko);
-
-	for(auto ele = extract_list->rbegin(); ele != extract_list->rend(); ele++) {
-		cout << "{";
-		for(auto it = (*ele)->rbegin(); it != (*ele)->rend(); it++) {
-			cout << *it;
-			if(*it != (*ele)->front()) 
-			 cout << ",";
-		}
-		cout << "}";
-
+	if (root != NULL) {
+		delete root;
 	}
-
-	if (nroot != NULL) {
-		//print_tree(nroot);
-		delete nroot;
-		
-	}
-
-	delete root;
 	
 	return 0;
 }
 template<typename T>
 void print_tree(Tree_Node<T>* node)
 {
-	for(auto it = node->children.begin();it!=node->children.end();it++)
-	{
-		cout << (*it)->data << "(" << (*it)->count << ")" << endl;
-		cout << "   ";
-		print_tree(*it);
-		cout << "\b\b";
-	}
+	node->print();
 }
 
 table_transaction_t<int> toMem(string filename)
 {
 	table_transaction_t<int> memoria;
-	vector<int> lista;
+	list<int> lista;
 	int TID = 0;
 	fstream sc;
 	string s;
@@ -94,15 +80,16 @@ table_transaction_t<int> toMem(string filename)
 	sc.open(filename.c_str());
 	while(getline(sc,s))
 	{
+		//cout << ".";
 		if(s!="")
 		{
 			int aux;
-			pch = strtok((char*)s.c_str(),"\t ,");
+			pch = strtok((char*)s.c_str()," ,\t\r");
 			while(pch!=NULL)
 			{
 				aux = atoi(pch);
 				lista.push_back(aux);
-				pch = strtok(NULL,"\t ,");
+				pch = strtok(NULL," ,\t\r");
 			}
 			memoria.push_back(transaction_t<int>(TID,lista));
 			TID++;
