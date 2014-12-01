@@ -119,6 +119,7 @@ Tree_Node<T>** build_tree_parallel(table_transaction_t<T> tr_table, map<T, int> 
 template<typename T>
 struct thread_loop_args {
 	int supp;
+	int my_id;
 	Tree_Node<T> *root;
 	int m_vec_begin;
 	int m_vec_len;
@@ -127,8 +128,8 @@ struct thread_loop_args {
 	~thread_loop_args();
 
 	thread_loop_args();
-	thread_loop_args(int _supp, Tree_Node<T>* _root, int _beg, int _vec_len, std::vector<T> _sorted) :
-		supp(_supp), root(_root), m_vec_begin(_beg), m_vec_len(_vec_len), sorted(_sorted) {}
+	thread_loop_args(int _supp, int _my_id, Tree_Node<T>* _root, int _beg, int _vec_len, std::vector<T> _sorted) :
+		supp(_supp), my_id(_my_id), root(_root), m_vec_begin(_beg), m_vec_len(_vec_len), sorted(_sorted) {}
 };
 
 template<typename T>
@@ -155,6 +156,7 @@ void* thread_loop_fp(void* args) {
 	thread_loop_args<T> *m_args;
 	m_args = (thread_loop_args<T> *) args;
 	int supp = (int) m_args->supp;
+	int my_id = (int) m_args->my_id;
 	Tree_Node<T> *root = (Tree_Node<T>*) m_args->root;
 	const std::vector<T> sorted = (std::vector<T>) m_args->sorted;
 
@@ -175,7 +177,11 @@ void* thread_loop_fp(void* args) {
 	}
 
 
-	pthread_exit(NULL);
+	if(my_id != 0) {
+		pthread_exit(NULL);
+	}
+
+	return NULL;
 
 }
 
@@ -183,23 +189,30 @@ template<typename T>
 list< list< freq_set_ptr<T> >* >* parallel_loop_fp(int supp,Tree_Node<T> *root, const std::vector<T> &sorted) {
 
 	pthread_t threads[THREAD_COUNT];
-	thread_loop_args<int>** td ;
-	td = new thread_loop_args<int>*[THREAD_COUNT];
+	thread_loop_args<T>** td ;
+	td = new thread_loop_args<T>*[THREAD_COUNT];
 
 	int j = 0;
 	int local_beg = 0;
 	int vec_share = ceil((double) sorted.size()/THREAD_COUNT) ;
-	for (j = 0; j < THREAD_COUNT; j++) {
+
+	td[0] = new thread_loop_args<T>(supp, 0, root, local_beg, vec_share, sorted);
+
+	for (j = 1; j < THREAD_COUNT; j++) {
 		local_beg = j*vec_share;
-		td[j] = new thread_loop_args<int>(supp, root, local_beg, vec_share, sorted);
-		pthread_create(&threads[j], NULL, thread_loop_fp<int>, (void *) td[j]);
+		td[j] = new thread_loop_args<T>(supp, j, root, local_beg, vec_share, sorted);
+		pthread_create(&threads[j - 1], NULL, thread_loop_fp<T>, (void *) td[j]);
 	}
+
+	thread_loop_fp<T>((void *) td[0]);
 
 	list< list< freq_set_ptr<T> >* >* all_extracts = new list< list< freq_set_ptr<T> >* >;
 
+	all_extracts->splice(all_extracts->end(), *(td[0]->local_extract_list));
+
 	void *status;
-	for (int i = 0; i < THREAD_COUNT; i++) {
-		pthread_join(threads[i], &status);
+	for (int i = 1; i < THREAD_COUNT; i++) {
+		pthread_join(threads[i - 1], &status);
 		all_extracts->splice(all_extracts->end(), *(td[i]->local_extract_list));
 	}
 
