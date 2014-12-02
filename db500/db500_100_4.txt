@@ -1,0 +1,20 @@
+Iniciando programa
+Passando para a memória
+Achando frequencias
+Construindo FPtree [1769 ms]
+Iniciando FPGrowth [12678 ms]
+Finalizando FPGrowth
+-----
+Iniciando programa
+Passando para a memória
+Achando frequencias
+Construindo FPtree [1796 ms]
+Iniciando FPGrowth [12828 ms]
+Finalizando FPGrowth
+-----
+Iniciando programa
+Passando para a memória
+Achando frequencias
+Construindo FPtree [1808 ms]
+Iniciando FPGrowth [13007 ms]
+Finalizando FPGrowth
